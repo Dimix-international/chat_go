@@ -2,6 +2,10 @@ package model
 
 import "os"
 
+const (
+	Port string = ":8989"
+)
+
 var (
 	DBUser    *os.File
 	DBMessage *os.File

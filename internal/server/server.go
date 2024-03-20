@@ -6,22 +6,34 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Dimix-international/chat_go/internal/handler"
 	"github.com/Dimix-international/chat_go/internal/model"
 	"github.com/Dimix-international/chat_go/internal/utils"
 )
 
-const (
-	port string = ":8989"
-)
-
 func Run() {
-	initFilesDB()
+	exit := make(chan os.Signal, 1)
+	signal.Notify(exit, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		if err := launchServer(); err != nil {
+			log.Println("stop server" + err.Error())
+			exit <- syscall.SIGTERM
+			close(exit)
+		}
+	}()
+
+	<-exit
 
 	defer model.DBUser.Close()
 	defer model.DBMessage.Close()
+}
 
+func launchServer() error {
+	initFilesDB()
 	readAllUsers()
 
 	http.HandleFunc("/", checkService)
@@ -30,9 +42,11 @@ func Run() {
 
 	go handler.HandleMessages()
 
-	if err := http.ListenAndServe(port, nil); err != nil {
-		log.Panic("error start serve" + err.Error())
+	if err := http.ListenAndServe(model.Port, nil); err != nil {
+		return err
 	}
+
+	return nil
 }
 
 func checkService(w http.ResponseWriter, r *http.Request) {
