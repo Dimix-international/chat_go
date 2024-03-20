@@ -3,9 +3,9 @@ package model
 import "os"
 
 var (
-	dbUser    *os.File
-	dbMessage *os.File
-	userData  = Users{
+	DBUser    *os.File
+	DBMessage *os.File
+	UserData  = Users{
 		IDx:   make(map[int]*User, 0),
 		TKx:   make(map[string]*User, 0),
 		Items: make([]User, 0, 100),
@@ -19,7 +19,7 @@ type Message struct {
 	UserName string `json:"name"`
 }
 
-type wsMessage struct {
+type WSMessage struct {
 	Text  []byte
 	Token string
 }
